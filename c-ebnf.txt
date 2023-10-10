@@ -9,7 +9,7 @@ toplevel = include
 
 include = "#" "include" ("<" header ">" | \" header \")
 define  = "#" "define" before after
-variavle-declare = type ident ";"
+variable-declare = type ident ";"
 function-declare = type ident "(" function-declare-parameters? ")" ";"
 function-declare-parameters = type ident? ("," type ident?)*
 
@@ -42,7 +42,7 @@ primary = "(" expr ")"
         | null
 
 
-type = alphbet+
+type = alphabet+
 ident = alphabet (alphabet | digit | "_")*
 int = digit+
 float = digit+ ("."? digit+)?
