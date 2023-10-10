@@ -1,0 +1,53 @@
+program = toplevel*
+
+
+toplevel = include
+         | define
+         | variable-declare
+         | function-declare
+         | function-define
+
+include = "#" "include" ("<" header ">" | \" header \")
+define  = "#" "define" before after
+variavle-declare = type ident ";"
+function-declare = type ident "(" function-declare-parameters? ")" ";"
+function-declare-parameters = type ident? ("," type ident?)*
+
+function-define = type ident "(" function-define-parameters? ")" stmt
+function-define-parameters = type ident ("," type ident)*
+
+
+stmt = expr ";"
+     | "{" stmt* "}"
+     | "return" expr ";"
+     | "if" "(" expr ")" stmt ("else" stmt)?
+     | "while" "(" expr ")" stmt
+     | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+
+
+expr = assign
+assign = type ident ("=" andor)?
+       | andor ("=" andor)?
+andor = equality ("&&" equality | "||" equality)*
+equality = relational ("==" relational | "!=" relational)*
+relational = add ("<" add | "<=" add | ">" add | ">=" add)*
+add = mul ("+" mul | "-" mul)*
+mul = unary ("*" unary | "/" unary | "%" unary)*
+unary = ("+" | "-" | "!")? primary
+primary = "(" expr ")"
+        | ident
+        | int
+        | float
+        | string
+        | null
+
+
+type = alphbet+
+ident = alphabet (alphabet | digit | "_")*
+int = digit+
+float = digit+ ("."? digit+)?
+string = \" ダブルクオーテーション以外の文字列* \"
+null = "NULL"
+
+alphabet = "A"..."Z" | "a"..."z"
+digit = "0" | "1"..."9"
