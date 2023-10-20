@@ -202,3 +202,11 @@ func NewLiteralFieldNode(kind LiteralKind, i int, f float64, s string) *Node {
 		},
 	}
 }
+
+type NotField struct {
+	V *Node
+}
+
+func NewNotFieldNode(v *Node) *Node {
+	return &Node{Kind: Not, NotField: &NotField{V: v}}
+}

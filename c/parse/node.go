@@ -17,6 +17,7 @@ type Node struct {
 	*AssignField
 	*BinaryField
 	*LiteralField
+	*NotField
 }
 
 func NewIdentNode(id string) *Node {
@@ -30,4 +31,7 @@ func NewFloatNode(f float64) *Node {
 }
 func NewStringNode(s string) *Node {
 	return NewLiteralFieldNode(LString, 0, 0, s)
+}
+func NewNullNode() *Node {
+	return NewLiteralFieldNode(LNull, 0, 0, "")
 }
