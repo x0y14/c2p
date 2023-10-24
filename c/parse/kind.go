@@ -59,4 +59,6 @@ const (
 	Float
 	String
 	Null
+	Call
+	CallArgs
 )

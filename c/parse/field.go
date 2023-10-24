@@ -210,3 +210,17 @@ type NotField struct {
 func NewNotFieldNode(v *Node) *Node {
 	return &Node{Kind: Not, NotField: &NotField{V: v}}
 }
+
+type CallField struct {
+	Ident *Node
+	Args  *Node
+}
+
+func NewCallFieldNode(id, args *Node) *Node {
+	return &Node{
+		Kind: Call, CallField: &CallField{
+			Ident: id,
+			Args:  args,
+		},
+	}
+}

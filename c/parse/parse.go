@@ -23,6 +23,12 @@ func peekNextKind(kind tokenize.TokenKind) *tokenize.Token {
 	}
 	return nil
 }
+func peekNextNextKind(kind tokenize.TokenKind) *tokenize.Token {
+	if token.Next.Next.Kind == kind {
+		return token.Next.Next
+	}
+	return nil
+}
 
 func consumeKind(kind tokenize.TokenKind) *tokenize.Token {
 	if token.Kind == kind {
@@ -174,11 +180,7 @@ func stmt() (*Node, error) {
 			return nil, err
 		}
 		// elseBlock
-		if lrb := consumeKind(tokenize.Lrb); lrb != nil {
-			// else
-			if _, err := expectIdent("else"); err != nil {
-				return nil, err
-			}
+		if els := consumeIdent("else"); els != nil {
 			// elseBlock
 			elseBlockNode, err := stmt()
 			if err != nil {
@@ -188,6 +190,20 @@ func stmt() (*Node, error) {
 		} else {
 			return NewIfElseFieldNode(condNode, ifBlockNode, nil), nil
 		}
+		//if lrb := consumeKind(tokenize.Lrb); lrb != nil {
+		//	// else
+		//	if _, err := expectIdent("else"); err != nil {
+		//		return nil, err
+		//	}
+		//	// elseBlock
+		//	elseBlockNode, err := stmt()
+		//	if err != nil {
+		//		return nil, err
+		//	}
+		//	return NewIfElseFieldNode(condNode, ifBlockNode, elseBlockNode), nil
+		//} else {
+		//	return NewIfElseFieldNode(condNode, ifBlockNode, nil), nil
+		//}
 	}
 
 	// while
@@ -301,14 +317,16 @@ func assign() (*Node, error) {
 	if id_ := peekKind(tokenize.Ident); id_ != nil {
 		// =?
 		if ass := peekNextKind(tokenize.Assign); ass != nil {
-			typ := consumeKind(tokenize.Ident)
-			_ = consumeKind(tokenize.Assign)
-			// type ident = value;
-			valNode, err := andor()
-			if err != nil {
-				return nil, err
+			if eq := peekNextNextKind(tokenize.Assign); eq == nil {
+				typ := consumeKind(tokenize.Ident)
+				_ = consumeKind(tokenize.Assign)
+				// type ident = value;
+				valNode, err := andor()
+				if err != nil {
+					return nil, err
+				}
+				return NewAssignFieldNode(NewIdentNode(typ.S), valNode), nil
 			}
-			return NewAssignFieldNode(NewIdentNode(typ.S), valNode), nil
 		}
 	}
 
@@ -484,6 +502,8 @@ func unary() (*Node, error) {
 
 func primary() (*Node, error) {
 	if lrb := consumeKind(tokenize.Lrb); lrb != nil {
+		if lrb := consumeKind(tokenize.Lrb); lrb != nil {
+		}
 		v, err := expr()
 		if err != nil {
 			return nil, err
@@ -493,6 +513,23 @@ func primary() (*Node, error) {
 		}
 		return v, nil
 	}
+
+	// call-args
+	if id := consumeKind(tokenize.Ident); id != nil {
+		if lrb := consumeKind(tokenize.Lrb); lrb != nil {
+			args, err := callArgs()
+			if err != nil {
+				return nil, err
+			}
+			if _, err := expectKind(tokenize.Rrb); err != nil {
+				return nil, err
+			}
+			return NewCallFieldNode(NewIdentNode(id.S), args), nil
+		}
+		// normal ident
+		return NewIdentNode(id.S), nil
+	}
+
 	if i := consumeKind(tokenize.Int); i != nil {
 		return NewIntNode(i.I), nil
 	}
@@ -505,8 +542,22 @@ func primary() (*Node, error) {
 	if null := consumeIdent("NULL"); null != nil {
 		return NewNullNode(), nil
 	}
-	if id := consumeKind(tokenize.Ident); id != nil {
-		return NewIdentNode(id.S), nil
-	}
 	return nil, fmt.Errorf("unexpected error: primary: %v", token)
+}
+
+func callArgs() (*Node, error) {
+	var values []*Node
+	v, err := unary()
+	if err != nil {
+		return nil, err
+	}
+	values = append(values, v)
+	for consumeKind(tokenize.Comma) != nil {
+		v, err = unary()
+		if err != nil {
+			return nil, err
+		}
+		values = append(values, v)
+	}
+	return NewPolynomialFieldNode(CallArgs, values), nil
 }

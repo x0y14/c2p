@@ -18,6 +18,7 @@ type Node struct {
 	*BinaryField
 	*LiteralField
 	*NotField
+	*CallField
 }
 
 func NewIdentNode(id string) *Node {

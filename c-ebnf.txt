@@ -40,6 +40,9 @@ primary = "(" expr ")"
         | float
         | string
         | null
+        | ident "(" callArgs? ")"
+
+callArgs = unary ("," unary)*
 
 
 type = alphabet+
