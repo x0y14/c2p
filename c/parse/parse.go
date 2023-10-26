@@ -190,20 +190,7 @@ func stmt() (*Node, error) {
 		} else {
 			return NewIfElseFieldNode(condNode, ifBlockNode, nil), nil
 		}
-		//if lrb := consumeKind(tokenize.Lrb); lrb != nil {
-		//	// else
-		//	if _, err := expectIdent("else"); err != nil {
-		//		return nil, err
-		//	}
-		//	// elseBlock
-		//	elseBlockNode, err := stmt()
-		//	if err != nil {
-		//		return nil, err
-		//	}
-		//	return NewIfElseFieldNode(condNode, ifBlockNode, elseBlockNode), nil
-		//} else {
-		//	return NewIfElseFieldNode(condNode, ifBlockNode, nil), nil
-		//}
+
 	}
 
 	// while
@@ -501,6 +488,7 @@ func unary() (*Node, error) {
 }
 
 func primary() (*Node, error) {
+	// "(" expr ")"
 	if lrb := consumeKind(tokenize.Lrb); lrb != nil {
 		if lrb := consumeKind(tokenize.Lrb); lrb != nil {
 		}
@@ -517,6 +505,11 @@ func primary() (*Node, error) {
 	// call-args
 	if id := consumeKind(tokenize.Ident); id != nil {
 		if lrb := consumeKind(tokenize.Lrb); lrb != nil {
+			// empty call
+			// ident()
+			if rrb := consumeKind(tokenize.Rrb); rrb != nil {
+				return NewCallFieldNode(NewIdentNode(id.S), nil), nil
+			}
 			args, err := callArgs()
 			if err != nil {
 				return nil, err
