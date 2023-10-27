@@ -489,8 +489,11 @@ func unary() (*Node, error) {
 
 func primary() (*Node, error) {
 	// "(" expr ")"
+	// todo fix
+	// 多分Polynomialとして返したほうがいい
 	if lrb := consumeKind(tokenize.Lrb); lrb != nil {
 		if lrb := consumeKind(tokenize.Lrb); lrb != nil {
+			// ?
 		}
 		v, err := expr()
 		if err != nil {
@@ -552,5 +555,7 @@ func callArgs() (*Node, error) {
 		}
 		values = append(values, v)
 	}
+	// todo check
+	// これ、Polynomialなの?
 	return NewPolynomialFieldNode(CallArgs, values), nil
 }
