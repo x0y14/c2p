@@ -165,7 +165,7 @@ func stmt(node *parse.Node) (string, error) {
 		code += init_
 		code += fmt.Sprintf("%swhile True:\n", genIndent())
 		nest++
-		code += fmt.Sprintf("%sif (%s):\n", genIndent(), cond)
+		code += fmt.Sprintf("%sif (not (%s)):\n", genIndent(), cond)
 		nest++
 		code += fmt.Sprintf("%sbreak\n", genIndent())
 		nest--
