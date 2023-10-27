@@ -104,7 +104,13 @@ func stmt(node *parse.Node) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			code += c
+			//code += c
+			if assignMode {
+				code += fmt.Sprintf("%s%s\n", genIndent(), c)
+				assignMode = false
+			} else {
+				code += c
+			}
 		}
 		nest--
 		return code, nil
@@ -390,6 +396,7 @@ func primary(node *parse.Node) (string, error) {
 func call(node *parse.Node) (string, error) {
 	ident := node.CallField.Ident.S
 	args := node.CallField.Args.PolynomialField
+	var code string
 	if ident == "printf" {
 
 	} else {
@@ -404,7 +411,8 @@ func call(node *parse.Node) (string, error) {
 			}
 			arguments += a
 		}
-		return fmt.Sprintf("%s(%s)", ident, arguments), nil
+		code = fmt.Sprintf("%s(%s)", ident, arguments)
 	}
-	return "", nil
+	assignMode = true
+	return code, nil
 }
