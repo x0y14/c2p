@@ -16,7 +16,19 @@ func TestGen(t *testing.T) {
 			"",
 			`
 int main(void) {
-	return 10000;
+    int i;
+    for (i = 1; i <= 100; i=i+1) {
+        if (i % 3 == 0 && i % 5 == 0) {
+            printf1("FizzBuzz\n");
+        } else if (i % 3 == 0) {
+            printf1("Fizz\n");
+        } else if (i % 5 == 0) {
+            printf1("Buzz\n");
+        } else {
+            printf1("%d\n", i);
+        }
+    }
+    return 0;
 }
 `,
 		},
