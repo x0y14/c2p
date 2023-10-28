@@ -98,8 +98,8 @@ func stmt(node *parse.Node) (string, error) {
 	switch node.Kind {
 	case parse.Block:
 		var code string
-		nest++
 		for _, statement := range node.BlockField.Stmt {
+			nest++
 			c, err := stmt(statement)
 			if err != nil {
 				return "", err
@@ -111,8 +111,8 @@ func stmt(node *parse.Node) (string, error) {
 			} else {
 				code += c
 			}
+			nest--
 		}
-		nest--
 		return code, nil
 	case parse.Return:
 		returnVal, err := expr(node.ReturnField.Value)
@@ -126,6 +126,7 @@ func stmt(node *parse.Node) (string, error) {
 		if err != nil {
 			return "", err
 		}
+
 		ifBlock, err := stmt(node.IfElseField.IfBlock)
 		if err != nil {
 			return "", err
@@ -140,10 +141,12 @@ func stmt(node *parse.Node) (string, error) {
 		}
 
 		// has else-block
+		nest++
 		elseBlock, err := stmt(node.IfElseField.ElseBlock)
 		if err != nil {
 			return "", err
 		}
+		nest--
 		code += fmt.Sprintf("%selse:\n", genIndent())
 		code += elseBlock
 
@@ -155,6 +158,7 @@ func stmt(node *parse.Node) (string, error) {
 		if err != nil {
 			return "", err
 		}
+		nest++
 		cond, err := expr(node.ForField.Cond)
 		if err != nil {
 			return "", err
@@ -163,11 +167,11 @@ func stmt(node *parse.Node) (string, error) {
 		if err != nil {
 			return "", err
 		}
+		nest--
 		body, err := stmt(node.ForField.Block)
 		if err != nil {
 			return "", err
 		}
-
 		code += init_
 		code += fmt.Sprintf("%swhile True:\n", genIndent())
 		nest++
@@ -389,6 +393,10 @@ func primary(node *parse.Node) (string, error) {
 		return call(node)
 	case parse.Int:
 		return strconv.Itoa(node.I), nil
+	case parse.Float:
+		return strconv.FormatFloat(node.F, 'f', -1, 64), nil
+	case parse.String:
+		return node.S, nil
 	}
 	return "", nil
 }
@@ -398,7 +406,27 @@ func call(node *parse.Node) (string, error) {
 	args := node.CallField.Args.PolynomialField
 	var code string
 	if ident == "printf" {
+		var arguments string
+		for i, arg := range args.Values[1:] {
+			a, err := expr(arg)
+			if err != nil {
+				return "", err
+			}
+			if i != 0 {
+				arguments += ", "
+			}
+			arguments += a
+		}
 
+		f, err := expr(args.Values[0])
+		if err != nil {
+			return "", err
+		}
+		if arguments == "" {
+			code = fmt.Sprintf("print(%#v)", f)
+		} else {
+			code = fmt.Sprintf("print(%#v.format(%s))", formatting(f), arguments)
+		}
 	} else {
 		var arguments string
 		for i, arg := range args.Values {
@@ -415,4 +443,10 @@ func call(node *parse.Node) (string, error) {
 	}
 	assignMode = true
 	return code, nil
+}
+
+func formatting(s string) string {
+	s = strings.ReplaceAll(s, "%d", "{}")
+	s = strings.ReplaceAll(s, "%s", "{}")
+	return s
 }

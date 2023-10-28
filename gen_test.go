@@ -19,13 +19,13 @@ int main(void) {
     int i;
     for (i = 1; i <= 100; i=i+1) {
         if (i % 3 == 0 && i % 5 == 0) {
-            printf1("FizzBuzz\n");
+            printf("FizzBuzz\n");
         } else if (i % 3 == 0) {
-            printf1("Fizz\n");
+            printf("Fizz\n");
         } else if (i % 5 == 0) {
-            printf1("Buzz\n");
+            printf("Buzz\n");
         } else {
-            printf1("%d\n", i);
+            printf("%d\n", i);
         }
     }
     return 0;
