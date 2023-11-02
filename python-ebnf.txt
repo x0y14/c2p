@@ -1,0 +1,34 @@
+program = toplevel*
+
+// todo global variable
+toplevel = function-define
+
+function-define = "def" ident "(" function-define-params?  ")" ":" stmt
+function-define-params = ident ("," ident)*
+
+stmt = expr
+     | stmt*
+     | "return"
+     | "if" expr ":" stmt ("else" ":" stmt)?
+     | "while" expr ":" stmt
+     | for-stmt
+
+for-stmt = "for" for-ids "in" for-expr ":" stmt
+for-ids = ident ("," ident)*
+for-expr = expr ("," expr)*
+
+expr = assign
+assign = andor ("=" andor)?
+andor = equality ("and" equality | "or" equality)*
+relational = add ("<" add | "<=" add | ">" add | ">=" add)*
+add = mul ("+" mul | "-" mul)*
+mul = unary ("*" unary | "/" unary | "%" unary)*
+unary = ("+" | "-" | "not")? primary
+primary = "(" expr ")"
+        | ident
+        | int
+        | float
+        | string
+        | none
+        | ident "(" callArgs? ")"
+callArgs = unary ("," unary)*
