@@ -30,6 +30,7 @@ const (
 	Sub
 	Mul
 	Div
+	Mod
 
 	Not
 
