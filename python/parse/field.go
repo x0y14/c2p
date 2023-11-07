@@ -65,13 +65,17 @@ func NewIfElseFieldNode(cond, ifBlock, elseBlock *Node) *Node {
 }
 
 type WhileField struct {
+	Init  *Node
 	Cond  *Node
+	Loop  *Node
 	Block *Node
 }
 
-func NewWhileFieldNode(cond, block *Node) *Node {
+func NewWhileFieldNode(init, cond, loop, block *Node) *Node {
 	return &Node{Kind: While, WhileField: &WhileField{
+		Init:  init,
 		Cond:  cond,
+		Loop:  loop,
 		Block: block,
 	}}
 }
