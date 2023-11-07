@@ -20,6 +20,7 @@ for-expr = expr ("," expr)*
 expr = assign
 assign = andor ("=" andor)?
 andor = equality ("and" equality | "or" equality)*
+equality = relational ("==" relational | "!=" relational)*
 relational = add ("<" add | "<=" add | ">" add | ">=" add)*
 add = mul ("+" mul | "-" mul)*
 mul = unary ("*" unary | "/" unary | "%" unary)*
