@@ -8,11 +8,12 @@ function-define-params = ident ("," ident)*
 
 stmt = expr
      | stmt*
-     | "return"
+     | "return" return-values?
      | "if" expr ":" stmt ("else" ":" stmt)?
      | "while" expr ":" stmt
      | for-stmt
 
+return-values = expr ("," expr)*
 for-stmt = "for" for-ids "in" for-expr ":" stmt
 for-ids = ident ("," ident)*
 for-expr = expr ("," expr)*
