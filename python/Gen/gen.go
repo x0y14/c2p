@@ -85,6 +85,7 @@ func functionDefine(node *parse.Node) ([]*Line, error) {
 }
 
 func functionDefineParams(node *parse.Node) (string, error) {
+	_ = node
 	return "", nil
 }
 
@@ -398,5 +399,52 @@ func primary(node *parse.Node) (string, error) {
 }
 
 func call(node *parse.Node) (string, error) {
-	return "call()", nil
+	ident := node.CallField.Ident.S
+	args := node.CallField.Args.PolynomialField
+
+	var code string
+	if ident == "printf" {
+		var arguments string
+		for i, arg := range args.Values[1:] {
+			a, err := expr(arg)
+			if err != nil {
+				return "", err
+			}
+			if i != 0 {
+				arguments += ", "
+			}
+			arguments += a
+		}
+
+		f, err := expr(args.Values[0])
+		if err != nil {
+			return "", err
+		}
+		if arguments == "" {
+			code = fmt.Sprintf("print(%#v)", f)
+		} else {
+			code = fmt.Sprintf("print(%#v.format(%s))", formatting(f), arguments)
+		}
+	} else {
+		var arguments string
+		for i, arg := range args.Values {
+			a, err := expr(arg)
+			if err != nil {
+				return "", err
+			}
+			if i != 0 {
+				arguments += ", "
+			}
+			arguments += a
+		}
+		code = fmt.Sprintf("%s(%s)", ident, arguments)
+	}
+
+	return code, nil
+}
+
+func formatting(s string) string {
+	s = strings.ReplaceAll(s, "%d", "{}")
+	s = strings.ReplaceAll(s, "%s", "{}")
+	return s
 }
