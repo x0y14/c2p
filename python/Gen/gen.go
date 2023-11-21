@@ -8,92 +8,105 @@ import (
 )
 
 var nest int
-var code string
 
-func init() {
-	nest = 0
-	code = ""
+type Line struct {
+	C string
+	N int
 }
 
-func indent() string {
-	return strings.Repeat("\t", nest)
+func NewLine(c string, n int) *Line {
+	return &Line{C: c, N: n}
 }
 
-func list(s string) []string {
-	return []string{s}
+func genLine(lines []*Line) string {
+	var c string
+	for _, l := range lines {
+		c += fmt.Sprintf("%s%s\n", strings.Repeat("\t", l.N), l.C)
+	}
+	return c
 }
 
 func Gen(nodes []*parse.Node) (string, error) {
-	err := program(nodes)
+	lines, err := program(nodes)
 	if err != nil {
 		return "", err
 	}
+	code := genLine(lines)
 	code += "if __name__ == \"__main__\":\n\tmain()"
 	return code, nil
 }
 
-func program(nodes []*parse.Node) error {
+func program(nodes []*parse.Node) ([]*Line, error) {
+	var lines []*Line
 	for _, node := range nodes {
-		err := toplevel(node)
+		l, err := toplevel(node)
 		if err != nil {
-			return err
+			return nil, err
 		}
+		lines = append(lines, l...)
 	}
-	return nil
+
+	return lines, nil
 }
 
-func toplevel(node *parse.Node) error {
+func toplevel(node *parse.Node) ([]*Line, error) {
 	switch node.Kind {
 	case parse.FunctionDefine:
 		return functionDefine(node)
 	}
-	return nil
+	return nil, nil
 }
 
-func functionDefine(node *parse.Node) error {
+func functionDefine(node *parse.Node) ([]*Line, error) {
 	field := node.FunctionDefineField
 
 	ident := field.Ident.S
 
 	params, err := functionDefineParams(field.Params)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	bl, err := stmt(field.Block)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	c := fmt.Sprintf("def %s(%s):", ident, params) + "\n"
-	c += bl[0]
-	c += "\n"
+	//c := fmt.Sprintf("def %s(%s):", ident, params) + "\n"
+	//c += bl[0]
+	//c += "\n"
+	//
+	//code += c
+	var lines []*Line
+	lines = append(lines, NewLine(fmt.Sprintf("def %s(%s):", ident, params), 0))
+	lines = append(lines, bl...)
 
-	code += c
-
-	return nil
+	return lines, nil
 }
 
 func functionDefineParams(node *parse.Node) (string, error) {
 	return "", nil
 }
 
-func stmt(node *parse.Node) ([]string, error) {
+func stmt(node *parse.Node) ([]*Line, error) {
 	switch node.Kind {
 	case parse.Block:
-		var c string
+		//var c string
+		var lines []*Line
 		nest++
 		for _, statementNode := range node.BlockField.Stmts {
 			statements, err := stmt(statementNode)
 			if err != nil {
 				return nil, err
 			}
-			for _, line := range statements {
-				c += fmt.Sprintf("%s%s", indent(), line) + "\n"
-			}
+			//for _, line := range statements {
+			//	//c += fmt.Sprintf("%s%s", indent(), line) + "\n"
+			//	lines = append(lines, line...)
+			//}
+			lines = append(lines, statements...)
 		}
 		nest--
-		return list(c), nil
+		return lines, nil
 	case parse.Return:
 		var values []string
 		for _, valueNode := range node.ReturnField.Values {
@@ -105,68 +118,75 @@ func stmt(node *parse.Node) ([]string, error) {
 			}
 			values = append(values, v)
 		}
-		return list(fmt.Sprintf("return %s", strings.Join(values, ", "))), nil
+		return []*Line{NewLine(fmt.Sprintf("return %s", strings.Join(values, ", ")), nest)}, nil
 	case parse.IfElse:
 		field := node.IfElseField
+		var lines []*Line
+
+		// 条件式
 		cond, err := expr(field.Cond)
 		if err != nil {
 			return nil, err
 		}
+		lines = append(lines, NewLine(fmt.Sprintf("if (%s):", cond), nest))
+
+		// IFの中身の作成
 		ifBlock, err := stmt(field.IfBlock)
 		if err != nil {
 			return nil, err
 		}
+		lines = append(lines, ifBlock...)
 
+		// もしElseがなかったら
 		if field.ElseBlock == nil {
-			// ifだけ
-			rt := []string{
-				fmt.Sprintf("if (%s):", cond),
-			}
-			rt = append(rt, ifBlock...)
-			return rt, nil
+			return lines, nil
 		}
 
+		// Elseがあったら
+		lines = append(lines, NewLine(fmt.Sprintf("else:"), nest))
+		nest++
 		elseBlock, err := stmt(field.ElseBlock)
 		if err != nil {
 			return nil, err
 		}
+		nest--
+		lines = append(lines, elseBlock...)
 
-		rt := []string{
-			fmt.Sprintf("if (%s):", cond),
-		}
-		rt = append(rt, ifBlock...)
-		rt = append(rt, []string{
-			"else:",
-		}...)
-		rt = append(rt, elseBlock...)
-		return rt, nil
+		return lines, nil
 	case parse.While:
 		field := node.WhileField
+		var lines []*Line
+
+		// 初期
 		wInit, err := expr(field.Init)
 		if err != nil {
 			return nil, err
 		}
+		lines = append(lines, NewLine(wInit, nest))
+
+		// 条件式
 		wCond, err := expr(field.Cond)
 		if err != nil {
 			return nil, err
 		}
-		wLoop, err := expr(field.Loop)
-		if err != nil {
-			return nil, err
-		}
+		lines = append(lines, NewLine(fmt.Sprintf("while (%s):", wCond), nest))
+
+		// 中身
 		wBlock, err := stmt(field.Block)
 		if err != nil {
 			return nil, err
 		}
-		// blockの最後にloopを入れてあげる
-		wBlock = append(wBlock, wLoop)
+		lines = append(lines, wBlock...)
 
-		rt := []string{
-			wInit,
-			fmt.Sprintf("while (%s):", wCond),
+		// ループ
+		wLoop, err := expr(field.Loop)
+		if err != nil {
+			return nil, err
 		}
-		rt = append(rt, wBlock...)
-		return rt, nil
+		// whileの中に入れてあげる
+		lines = append(lines, NewLine(wLoop, nest+1))
+
+		return lines, nil
 	case parse.For:
 	}
 
@@ -174,7 +194,7 @@ func stmt(node *parse.Node) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return list(e), nil
+	return []*Line{NewLine(e, nest)}, nil
 }
 
 func expr(node *parse.Node) (string, error) {
