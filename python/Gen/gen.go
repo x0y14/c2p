@@ -72,11 +72,6 @@ func functionDefine(node *parse.Node) ([]*Line, error) {
 		return nil, err
 	}
 
-	//c := fmt.Sprintf("def %s(%s):", ident, params) + "\n"
-	//c += bl[0]
-	//c += "\n"
-	//
-	//code += c
 	var lines []*Line
 	lines = append(lines, NewLine(fmt.Sprintf("def %s(%s):", ident, params), 0))
 	lines = append(lines, bl...)
@@ -92,7 +87,6 @@ func functionDefineParams(node *parse.Node) (string, error) {
 func stmt(node *parse.Node) ([]*Line, error) {
 	switch node.Kind {
 	case parse.Block:
-		//var c string
 		var lines []*Line
 		nest++
 		for _, statementNode := range node.BlockField.Stmts {
@@ -100,10 +94,6 @@ func stmt(node *parse.Node) ([]*Line, error) {
 			if err != nil {
 				return nil, err
 			}
-			//for _, line := range statements {
-			//	//c += fmt.Sprintf("%s%s", indent(), line) + "\n"
-			//	lines = append(lines, line...)
-			//}
 			lines = append(lines, statements...)
 		}
 		nest--
