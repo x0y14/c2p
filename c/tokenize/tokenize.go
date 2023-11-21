@@ -191,7 +191,7 @@ Loop:
 		}
 
 		// newline
-		if userInput[curtPos] == '\n' {
+		if userInput[curtPos] == '\n' || userInput[curtPos] == '\r' {
 			curtPos++
 			continue
 		}
