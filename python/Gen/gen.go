@@ -21,7 +21,7 @@ func NewLine(c string, n int) *Line {
 func genLine(lines []*Line) string {
 	var c string
 	for _, l := range lines {
-		c += fmt.Sprintf("%s%s\n", strings.Repeat("\t", l.N), l.C)
+		c += fmt.Sprintf("%s%s\n", strings.Repeat("    ", l.N), l.C)
 	}
 	return c
 }
@@ -32,7 +32,7 @@ func Gen(nodes []*parse.Node) (string, error) {
 		return "", err
 	}
 	code := genLine(lines)
-	code += "if __name__ == \"__main__\":\n\tmain()"
+	code += "if __name__ == \"__main__\":\n    main()"
 	return code, nil
 }
 
