@@ -135,12 +135,12 @@ func stmt(node *parse.Node) ([]*Line, error) {
 
 		// Elseがあったら
 		lines = append(lines, NewLine(fmt.Sprintf("else:"), nest))
-		nest++
+		//nest++
 		elseBlock, err := stmt(field.ElseBlock)
 		if err != nil {
 			return nil, err
 		}
-		nest--
+		//nest--
 		lines = append(lines, elseBlock...)
 
 		return lines, nil

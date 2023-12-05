@@ -186,7 +186,10 @@ func stmt() (*Node, error) {
 			if err != nil {
 				return nil, err
 			}
-			return NewIfElseFieldNode(condNode, ifBlockNode, elseBlockNode), nil
+			if elseBlockNode.Kind == Block {
+				return NewIfElseFieldNode(condNode, ifBlockNode, elseBlockNode), nil
+			}
+			return NewIfElseFieldNode(condNode, ifBlockNode, NewBlockFieldNode([]*Node{elseBlockNode})), nil
 		} else {
 			return NewIfElseFieldNode(condNode, ifBlockNode, nil), nil
 		}
